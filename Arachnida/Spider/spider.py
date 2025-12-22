@@ -1,6 +1,5 @@
 import requests, argparse, os
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
 from termcolor import colored
 from urllib.parse import urljoin, urlparse
 
