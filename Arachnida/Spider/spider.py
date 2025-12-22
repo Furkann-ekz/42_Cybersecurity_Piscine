@@ -33,19 +33,19 @@ class Spider:
 
 
 	def download_image(self, img_url):
-		if img_url in self.downloaded_images:
+		if (img_url in self.downloaded_images):
 			return
 		self.downloaded_images.add(img_url)
 
 		try:
-			os.makedirs(self.save_path, exist_ok=True)
+			os.makedirs(self.save_path, exist_ok = True)
 
 			filename = img_url.split("/")[-1].split("?")[0]
-			if len(filename) == 0:
+			if (len(filename) == 0:)
 				filename = "unnamed_image.jpg"
 			file_path = os.path.join(self.save_path, filename)
 
-			if os.path.exists(file_path):
+			if (os.path.exists(file_path)):
 				print(colored(f"[!] Already exists: {filename}", "yellow"))
 				return
 
@@ -73,7 +73,7 @@ class Spider:
 		self.visited_urls.add(current_url)
 		html = self.get_html(current_url)
 
-		if not html:
+		if (not html):
 			print(colored(f"This link ({current_url}) could not be read.", "red"))
 			return
 		
