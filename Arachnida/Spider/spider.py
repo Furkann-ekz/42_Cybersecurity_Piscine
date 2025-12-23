@@ -41,6 +41,12 @@ class Spider:
 			os.makedirs(self.save_path, exist_ok = True)
 
 			filename = img_url.split("/")[-1].split("?")[0]
+
+			valid_extensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".tiff"]
+
+			if not any(filename.lower().endswith(ext) for ext in valid_extensions):
+				return
+
 			if (len(filename) == 0):
 				filename = "unnamed_image.jpg"
 			file_path = os.path.join(self.save_path, filename)
