@@ -12,10 +12,13 @@
 class Scorpion
 {
 	private:
-		std::vector<AllClasses *>	files;
+		std::vector<AllClasses *>	classes;
+		std::vector<std::string>	files;
 	public:
-		Scorpion();
+		Scorpion(char **av);
 		~Scorpion();
+
+		std::string	get_extension(std::string f_name);
 };
 
 #endif

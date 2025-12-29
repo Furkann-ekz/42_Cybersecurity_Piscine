@@ -6,7 +6,8 @@ int	main(int ac, char **av)
 		return (0);
 	try
 	{
-		Scorpion	scorpion();
+		av = av + 1;
+		Scorpion	scorpion(av);
 	}
 	catch (std::exception)
 	{
