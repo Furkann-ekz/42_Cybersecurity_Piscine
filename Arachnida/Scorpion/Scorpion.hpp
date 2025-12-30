@@ -8,6 +8,8 @@
 #include "./Classes/Png.hpp"
 #include "./Classes/Tiff.hpp"
 #include "./Classes/Webp.hpp"
+#include "./Classes/Svg.hpp"
+#include <cctype>
 
 class Scorpion
 {
@@ -18,7 +20,8 @@ class Scorpion
 		Scorpion(char **av);
 		~Scorpion();
 
-		std::string	get_extension(std::string f_name);
+		void		SetClasses(void);
+		std::string	to_lower(std::string str);
 };
 
 #endif
