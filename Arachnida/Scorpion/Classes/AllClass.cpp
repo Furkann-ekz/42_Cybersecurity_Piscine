@@ -18,11 +18,3 @@ std::string AllClasses::get_filename()
 {
 	return (file_name);
 }
-
-template <typename T>
-std::string AllClasses::to_string(T value)
-{
-    std::stringstream ss;
-    ss << value;
-    return ss.str();
-}

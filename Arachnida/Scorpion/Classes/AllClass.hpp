@@ -26,7 +26,12 @@ class AllClasses
 		void			set_filename(std::string f_name);
 		std::string		get_filename();
 		template <typename T>
-		std::string		to_string(T value);
+		std::string AllClasses::to_string(T value)
+		{
+			std::stringstream ss;
+			ss << value;
+			return ss.str();
+		}
 };
 
 #endif
