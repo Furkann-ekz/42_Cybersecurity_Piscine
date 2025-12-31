@@ -11,7 +11,6 @@ class Jpeg_Jpg: public AllClasses
 		~Jpeg_Jpg();
 
 		void	parse();
-		void	display_info();
 };
 
 #endif

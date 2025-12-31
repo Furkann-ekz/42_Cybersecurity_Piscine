@@ -11,7 +11,6 @@ class Gif: public AllClasses
 		~Gif();
 
 		void	parse();
-		void	display_info();
 };
 
 #endif

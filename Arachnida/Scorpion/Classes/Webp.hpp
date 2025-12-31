@@ -11,7 +11,6 @@ class Webp: public AllClasses
 		~Webp();
 
 		void	parse();
-		void	display_info();
 };
 
 #endif

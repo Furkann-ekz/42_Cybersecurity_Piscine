@@ -11,7 +11,6 @@ class Bmp: public AllClasses
 		~Bmp();
 
 		void	parse();
-		void	display_info();
 };
 
 #endif

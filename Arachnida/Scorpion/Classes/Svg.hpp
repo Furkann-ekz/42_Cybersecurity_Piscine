@@ -11,7 +11,6 @@ class Svg: public AllClasses
 		~Svg();
 
 		void	parse();
-		void	display_info();
 };
 
 #endif

@@ -11,7 +11,6 @@ class Png: public AllClasses
 		~Png();
 
 		void	parse();
-		void	display_info();
 };
 
 #endif

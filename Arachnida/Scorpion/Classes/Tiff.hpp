@@ -11,7 +11,6 @@ class Tiff: public AllClasses
 		~Tiff();
 
 		void	parse();
-		void	display_info();
 };
 
 #endif
