@@ -78,3 +78,16 @@ Scorpion::~Scorpion()
 	}
 	classes.clear();
 }
+
+void	Scorpion::Run(void)
+{
+	size_t	i;
+
+	i = 0;
+	while (i < classes.size())
+	{
+		classes[i]->parse();
+		classes[i]->display_info();
+		i++;
+	}
+}

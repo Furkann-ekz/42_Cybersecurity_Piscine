@@ -4,7 +4,7 @@
 #include "./Classes/AllClass.hpp"
 #include "./Classes/Bmp.hpp"
 #include "./Classes/Gif.hpp"
-#include "./Classes/JpegAndJpg.hpp"
+#include "./Classes/Jpeg_Jpg.hpp"
 #include "./Classes/Png.hpp"
 #include "./Classes/Tiff.hpp"
 #include "./Classes/Webp.hpp"
@@ -22,6 +22,7 @@ class Scorpion
 
 		void		SetClasses(void);
 		std::string	to_lower(std::string str);
+		void		Run(void);
 };
 
 #endif

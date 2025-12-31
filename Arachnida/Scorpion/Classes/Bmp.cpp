@@ -6,5 +6,7 @@ Bmp::~Bmp() {}
 
 void	Bmp::parse()
 {
-	
+	size_t	i;
+
+	i = 0;
 }
