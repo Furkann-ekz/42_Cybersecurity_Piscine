@@ -8,18 +8,40 @@ void	Jpeg_Jpg::Process_IFD(std::ifstream &file, unsigned short &collector, unsig
 {
 	unsigned short	num_entries;
 	unsigned int	four_byte;
+	int				type_size;
+	size_t			i;
 
 	if ((num_entries = read_u16(file)) == 0)
 		return ;
-	length -= num_entries;
-	while (num_entries >= 0)
+	i = 0;
+	while (i < num_entries)
 	{
-		length -= num_entries;
-		num_entries -= 12;
 		if ((collector = read_u16(file)) == 0)
 			return ;
-		if (collector == 3)
-			;
+		if (collector == 0x010F)
+		{
+			if ((collector = read_u16(file)) == 0)
+				return ;
+			if (collector == 1 || collector == 2)
+				type_size = 1;
+			else if (collector == 3)
+				type_size = 2;
+			else if (collector == 4)
+				type_size = 4;
+			else if (collector == 5)
+				type_size = 8;
+		}
+		else if (collector == 0x0110)
+		{}
+		else if (collector == 0x0132)
+		{}
+		else if (collector == 0x8769)
+		{}
+		else if (collector == 0x8825)
+		{}
+		else
+			continue ;
+		i++;
 	}
 }
 
