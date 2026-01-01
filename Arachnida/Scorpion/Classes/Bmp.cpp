@@ -6,7 +6,8 @@ Bmp::~Bmp() {}
 
 void	Bmp::parse()
 {
-	size_t	i;
+	std::map<std::string, std::string>::iterator	iterator;
+	size_t											i;
 
 	i = 0;
 }
