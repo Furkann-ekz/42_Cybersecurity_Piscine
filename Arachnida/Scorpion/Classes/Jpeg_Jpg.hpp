@@ -6,8 +6,8 @@
 class Jpeg_Jpg: public AllClasses
 {
 	private:
-		void	Jpeg_Jpg::StartParsing(std::ifstream &file, unsigned short &collector, unsigned short length);
-		void	Jpeg_Jpg::Process_IFD(std::ifstream &file, unsigned short &collector, unsigned short &length);
+		void	StartParsing(std::ifstream &file, unsigned short &collector, unsigned short length);
+		void	Process_IFD(std::ifstream &file, unsigned short &collector, unsigned short &length);
 	public:
 		Jpeg_Jpg(std::string file_name);
 		~Jpeg_Jpg();
@@ -15,6 +15,18 @@ class Jpeg_Jpg: public AllClasses
 		void	parse();
 		void	UpdateData(std::ifstream &file);
 		void	parse_exif(std::ifstream &file, unsigned short &collector);
+
+
+		void	HandleMakeData(std::ifstream &file, unsigned short &collector);
+		int		GetTypeSize(std::ifstream &file, unsigned short &collector);
+
+		void	HandleExifSub(std::ifstream &file, unsigned short &collector);
+
+		void	HandleModelData(std::ifstream &file, unsigned short &collector);
+
+		void	HandleTimeData(std::ifstream &file, unsigned short &collector);
+
+		void	HandleGPS(std::ifstream &file, unsigned short &collector);
 };
 
 #endif

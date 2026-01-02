@@ -4,11 +4,101 @@ Jpeg_Jpg::Jpeg_Jpg(std::string file_name) : AllClasses(file_name) {}
 
 Jpeg_Jpg::~Jpeg_Jpg() {}
 
+int	Jpeg_Jpg::GetTypeSize(std::ifstream &file, unsigned short &collector)
+{
+	if ((collector = read_u16(file)) == 0)
+		return (0);
+	switch (collector)
+	{
+		case 1:
+			return (1); // BYTE
+		case 2:
+			return (1); // ASCII
+		case 3:
+			return (2); // SHORT
+		case 4:
+			return (4); // LONG
+		case 5:
+			return (8); // RATIONAL
+		case 6:
+			return (1); // SBYTE (Çok nadir)
+		case 7:
+			return (1); // UNDEFINED (Exif'te sıkça çıkar)
+		case 8:
+			return (2); // SSHORT
+		case 9:
+			return (4); // SLONG
+		case 10:
+			return (8); // SRATIONAL (Pozitif/Negatif kesirli)
+		case 11:
+			return (4); // FLOAT
+		case 12:
+			return (8); // DOUBLE
+		default:
+			return (0); // Bilinmeyen tip
+	}
+}
+
+void	Jpeg_Jpg::HandleMakeData(std::ifstream &file, unsigned short &collector)
+{
+	unsigned int	type_size;
+	unsigned int	count;
+	unsigned int	offset;
+	std::streampos	base;
+
+	type_size = GetTypeSize(file, collector);
+	base = file.tellg();
+	if ((count = read_u32(file)) == 0)
+		return ;
+	count *= type_size;
+	if ((offset = read_u32(file)) == 0 || count == 0)
+		return ;
+	if (count > 4)
+	{
+		base = file.tellg();
+		char *buffer = new char[count + 1];
+		if (!buffer)
+			return ;
+		if (file.read(buffer, count))
+		{
+			buffer[count] = '\0';
+			if (collector == 0x010F)
+				this->data["Camera Make"] = std::string(buffer);
+			else if (collector == 0x0110)
+				this->data["Camera Model"] = std::string(buffer);
+			else if (collector == 0x0132)
+				this->data["Date/Time"] = std::string(buffer);
+		}
+		delete[] buffer;
+		file.seekg(base);
+	}
+	else
+	{
+		file.seekg(-4, std::ios::cur);
+		char	buffer[count];
+		file.read(buffer, count);
+		buffer[count] = '\0';
+		this->data["Camera Make"] = std::string(buffer);
+		file.seekg(4 - count, std::ios::cur);
+	}
+}
+
+void	Jpeg_Jpg::HandleModelData(std::ifstream &file, unsigned short &collector)
+{}
+
+void	Jpeg_Jpg::HandleTimeData(std::ifstream &file, unsigned short &collector)
+{}
+
+void	Jpeg_Jpg::HandleExifSub(std::ifstream &file, unsigned short &collector)
+{}
+
+void	Jpeg_Jpg::HandleGPS(std::ifstream &file, unsigned short &collector)
+{}
+
 void	Jpeg_Jpg::Process_IFD(std::ifstream &file, unsigned short &collector, unsigned short &length)
 {
 	unsigned short	num_entries;
 	unsigned int	four_byte;
-	int				type_size;
 	size_t			i;
 
 	if ((num_entries = read_u16(file)) == 0)
@@ -19,28 +109,18 @@ void	Jpeg_Jpg::Process_IFD(std::ifstream &file, unsigned short &collector, unsig
 		if ((collector = read_u16(file)) == 0)
 			return ;
 		if (collector == 0x010F)
-		{
-			if ((collector = read_u16(file)) == 0)
-				return ;
-			if (collector == 1 || collector == 2)
-				type_size = 1;
-			else if (collector == 3)
-				type_size = 2;
-			else if (collector == 4)
-				type_size = 4;
-			else if (collector == 5)
-				type_size = 8;
-		}
+			HandleMakeData(file, collector);
 		else if (collector == 0x0110)
-		{}
+			HandleModelData(file, collector);
 		else if (collector == 0x0132)
-		{}
+			HandleTimeData(file, collector);
 		else if (collector == 0x8769)
-		{}
+			HandleExifSub(file, collector);
 		else if (collector == 0x8825)
-		{}
+			HandleGPS(file, collector);
 		else
-			continue ;
+			file.seekg(10, std::ios::cur);
+		length -= 12;
 		i++;
 	}
 }
