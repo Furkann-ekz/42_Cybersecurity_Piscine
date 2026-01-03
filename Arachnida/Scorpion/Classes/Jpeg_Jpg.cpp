@@ -368,7 +368,6 @@ void    Jpeg_Jpg::UpdateData(std::ifstream &file)
 		}
 		else
 		{
-			std::cout << "Atlanan Marker: 0x" << std::hex << collector << std::dec << std::endl;
 			if ((collector >> 8) != 0xFF)
 				return ;
 			length = read_u16(file);
