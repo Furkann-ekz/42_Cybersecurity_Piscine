@@ -39,61 +39,219 @@ int	Jpeg_Jpg::GetTypeSize(std::ifstream &file, unsigned short &collector)
 	}
 }
 
-void	Jpeg_Jpg::HandleMakeData(std::ifstream &file, unsigned short &collector)
+void	Jpeg_Jpg::HandleStringData(std::ifstream &file, unsigned short &collector)
 {
 	unsigned int	type_size;
 	unsigned int	count;
 	unsigned int	offset;
 	std::streampos	base;
+	std::string		result_value;
 
 	type_size = GetTypeSize(file, collector);
-	base = file.tellg();
-	if ((count = read_u32(file)) == 0)
+	count = read_u32(file);
+	if (file.fail())
 		return ;
 	count *= type_size;
-	if ((offset = read_u32(file)) == 0 || count == 0)
+	offset = read_u32(file);
+	if (file.fail())
+		return ;
+	if (count == 0)
 		return ;
 	if (count > 4)
 	{
+		char	*buffer;
+		
 		base = file.tellg();
-		char *buffer = new char[count + 1];
+		file.seekg(offset, std::ios::beg);
+		buffer = new char[count + 1];
 		if (!buffer)
+		{
+			file.seekg(base);
 			return ;
+		}
 		if (file.read(buffer, count))
 		{
 			buffer[count] = '\0';
-			if (collector == 0x010F)
-				this->data["Camera Make"] = std::string(buffer);
-			else if (collector == 0x0110)
-				this->data["Camera Model"] = std::string(buffer);
-			else if (collector == 0x0132)
-				this->data["Date/Time"] = std::string(buffer);
+			result_value = buffer;
 		}
 		delete[] buffer;
 		file.seekg(base);
 	}
 	else
 	{
+		char	buffer[5];
+
 		file.seekg(-4, std::ios::cur);
-		char	buffer[count];
-		file.read(buffer, count);
-		buffer[count] = '\0';
-		this->data["Camera Make"] = std::string(buffer);
+		if (file.read(buffer, count))
+		{
+			buffer[count] = '\0';
+			result_value = buffer;
+		}
+		file.seekg(4 - count, std::ios::cur);
+	}
+	if (!result_value.empty())
+	{
+		if (collector == 0x010F)
+			this->data["Camera Make"] = result_value;
+		else if (collector == 0x0110)
+			this->data["Camera Model"] = result_value;
+		else if (collector == 0x0132)
+			this->data["Date/Time"] = result_value;
+	}
+}
+
+void	Jpeg_Jpg::HandleExifSubAndGPS(std::ifstream &file, unsigned short &collector)
+{
+	unsigned short	temp_collector;
+	unsigned short	temp_length;
+	unsigned int	type_size;
+	unsigned int	count;
+	unsigned int	offset;
+	std::streampos	base;
+
+	temp_collector = 0;
+	temp_length = 0;
+	type_size = GetTypeSize(file, collector);
+	count = read_u32(file);
+	if (file.fail())
+		return ;
+	count *= type_size;
+	offset = read_u32(file);
+	if (file.fail())
+		return ;
+	if (count == 0)
+		return ;
+	base = file.tellg();
+	file.seekg(offset, std::ios::beg);
+	Process_IFD(file, temp_collector, temp_length);
+	file.seekg(base);
+}
+
+void	Jpeg_Jpg::HandleValueData(std::ifstream &file, unsigned short &collector)
+{
+	unsigned int	type_size;
+	unsigned int	count;
+	unsigned int	offset;
+	std::streampos	base;
+	std::string		temp;
+
+	type_size = GetTypeSize(file, collector);
+	count = read_u32(file);
+	if (file.fail())
+		return ;
+	count *= type_size;
+	offset = read_u32(file);
+	if (file.fail())
+		return ;
+	if (count == 0)
+		return ;
+	base = file.tellg();
+	if (count > 4)
+	{
+		file.seekg(offset, std::ios::beg);
+		if (collector == 0x829D)
+			this->data["FNumber"] = get_rational(file);
+		else if (collector == 0x829A)
+			this->data["ExposureTime"] = get_rational(file);
+		else if (collector == 0x0002 || collector == 0x0004)
+		{
+			temp = get_rational(file) + " " + get_rational(file) + " " + get_rational(file);
+			if (collector == 0x0002)
+				this->data["GPS Latitude"] = temp;
+			else
+				this->data["GPS Longitude"] = temp;
+		}
+		else if (collector == 0x0006)
+			this->data["GPS Altitude"] = get_rational(file);
+		file.seekg(base);
+	}
+	else
+	{
+		file.seekg(-4, std::ios::cur);
+		if (collector == 0x8827)
+		{
+			unsigned int	val = 0;
+			if (count == 2)
+			{
+				val = read_u16(file);
+				if (file.fail())
+					return ;
+			}
+			else
+			{
+				val = read_u32(file);
+				if (file.fail())
+					return ;
+			}
+			std::stringstream ss;
+			ss << val;
+			this->data["ISO Speed"] = ss.str();
+		}
 		file.seekg(4 - count, std::ios::cur);
 	}
 }
 
-void	Jpeg_Jpg::HandleModelData(std::ifstream &file, unsigned short &collector)
-{}
+std::string	Jpeg_Jpg::get_rational(std::ifstream &file)
+{
+	unsigned int		num;
+	unsigned int		den;
+	std::stringstream	ss;
 
-void	Jpeg_Jpg::HandleTimeData(std::ifstream &file, unsigned short &collector)
-{}
+	num = read_u32(file);
+	if (file.fail())
+		return ("");
+	den = read_u32(file);
+	if (file.fail())
+		return ("");
 
-void	Jpeg_Jpg::HandleExifSub(std::ifstream &file, unsigned short &collector)
-{}
+	if (den == 0)
+		return ("0");
+	if (num % den == 0)
+	{
+		ss << (num / den);
+		return (ss.str());
+	}
+	if (num > den)
+	{
+		double val = (double)num / (double)den;
+		ss << val;
+	}
+	else
+		ss << num << "/" << den;
+	return (ss.str());
+}
 
-void	Jpeg_Jpg::HandleGPS(std::ifstream &file, unsigned short &collector)
-{}
+void	Jpeg_Jpg::HandleGPSRef(std::ifstream &file, unsigned short &collector)
+{
+	unsigned int	type_size;
+	unsigned int	count;
+	unsigned int	offset;
+	char			buffer[5];
+
+	type_size = GetTypeSize(file, collector);
+	count = read_u32(file);
+	if (file.fail())
+		return ;
+	count *= type_size;
+	offset = read_u32(file);
+	if (file.fail())
+		return ;
+	if (count == 0)
+		return ;
+	if (count <= 4)
+	{
+		file.seekg(-4, std::ios::cur);
+		file.read(buffer, count);
+		if (file.fail())
+			return ;
+		buffer[count] = '\0';
+		if (collector == 0x0001)
+			this->data["GPS Latitude Ref"] = std::string(buffer);
+		else if (collector == 0x0003)
+			this->data["GPS Longitude Ref"] = std::string(buffer);
+		file.seekg(4 - count, std::ios::cur);
+	}
+}
 
 void	Jpeg_Jpg::Process_IFD(std::ifstream &file, unsigned short &collector, unsigned short &length)
 {
@@ -106,18 +264,18 @@ void	Jpeg_Jpg::Process_IFD(std::ifstream &file, unsigned short &collector, unsig
 	i = 0;
 	while (i < num_entries)
 	{
-		if ((collector = read_u16(file)) == 0)
+		collector = read_u16(file);
+		if (file.fail())
 			return ;
-		if (collector == 0x010F)
-			HandleMakeData(file, collector);
-		else if (collector == 0x0110)
-			HandleModelData(file, collector);
-		else if (collector == 0x0132)
-			HandleTimeData(file, collector);
-		else if (collector == 0x8769)
-			HandleExifSub(file, collector);
-		else if (collector == 0x8825)
-			HandleGPS(file, collector);
+		if (collector == 0x010F || collector == 0x0110 || collector == 0x0132)
+			HandleStringData(file, collector);
+		else if (collector == 0x8769 || collector == 0x8825)
+			HandleExifSubAndGPS(file, collector);
+		else if (collector == 0x8827 || collector == 0x829A || collector == 0x829D
+			|| collector == 0x0002 || collector == 0x0004 || collector == 0x0006)
+			HandleValueData(file, collector);
+		else if (collector == 0x0001 || collector == 0x0003)
+			HandleGPSRef(file, collector);
 		else
 			file.seekg(10, std::ios::cur);
 		length -= 12;
@@ -138,11 +296,13 @@ void	Jpeg_Jpg::StartParsing(std::ifstream &file, unsigned short &collector, unsi
 		little_endian = false;
 	else
 		return ;
-	if ((collector = read_u16(file)) == 0)
+	collector = read_u16(file);
+	if (file.fail())
 		return ;
 	if (collector != 42)
 		return ;
-	if ((offset = read_u32(file)) == 0)
+	offset = read_u32(file);
+	if (file.fail())
 		return ;
 	if (offset >= 8)
 		file.seekg(offset - 8, std::ios::cur);
@@ -176,20 +336,31 @@ void	Jpeg_Jpg::UpdateData(std::ifstream &file)
 
 	while (!file.eof())
 	{
-		if ((collector = read_u16(file)) == 0 || collector == 0xFFDA)
+		collector = read_u16(file);
+		if (file.fail() || collector == 0xFFDA)
 			return ;
 		else if (collector == 0xFFE1)
-		{
 			parse_exif(file, collector);
-			return ;
+		else if (collector == 0xFFC0)
+		{
+			length = read_u16(file);
+			unsigned short height = read_u16(file);
+			unsigned short width = read_u16(file);
+
+			file.seekg(1, std::ios::cur);
+			std::stringstream ss_h, ss_w;
+			ss_h << height;
+			ss_w << width;
+			this->data["Height"] = ss_h.str();
+			this->data["Width"] = ss_w.str();
+			file.seekg(length - 7, std::ios::cur);
 		}
-		//else if (collector == 0xFFC0)
-			//
 		else
 		{
 			if ((collector >> 8) != 0xFF)
 				return ;
-			if ((length = read_u16(file))  == 0)
+			length = read_u16(file);
+			if (file.fail())
 				return ;
 			file.seekg(length - 2, std::ios::cur);
 		}
