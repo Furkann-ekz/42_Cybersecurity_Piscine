@@ -54,3 +54,19 @@ unsigned int	AllClasses::read_u32(std::ifstream &file)
 
 	return ((buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3]);
 }
+
+void	AllClasses::print_data()
+{
+	if (this->data.empty())
+	{
+		std::cout << ">> Herhangi bir veri bulunamadi." << std::endl;
+		return ;
+	}
+	std::map<std::string, std::string>::iterator it = this->data.begin();
+	
+	while (it != this->data.end())
+	{
+		std::cout << "[" << it->first << "] : " << it->second << std::endl;
+		it++;
+	}
+}

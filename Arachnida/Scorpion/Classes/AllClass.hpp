@@ -25,6 +25,7 @@ class AllClasses
 		virtual void	parse() = 0;
 		void			display_info();
 		void			set_filename(std::string f_name);
+		void			print_data();
 		std::string		get_filename();
 		unsigned short	read_u16(std::ifstream &file);
 		unsigned int	read_u32(std::ifstream &file);

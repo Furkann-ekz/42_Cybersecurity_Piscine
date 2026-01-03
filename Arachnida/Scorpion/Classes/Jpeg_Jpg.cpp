@@ -4,8 +4,9 @@ Jpeg_Jpg::Jpeg_Jpg(std::string file_name) : AllClasses(file_name) {}
 
 Jpeg_Jpg::~Jpeg_Jpg() {}
 
-int	Jpeg_Jpg::GetTypeSize(std::ifstream &file, unsigned short &collector)
+int	Jpeg_Jpg::GetTypeSize(std::ifstream &file)
 {
+	unsigned short	collector;
 	if ((collector = read_u16(file)) == 0)
 		return (0);
 	switch (collector)
@@ -47,7 +48,7 @@ void	Jpeg_Jpg::HandleStringData(std::ifstream &file, unsigned short &collector)
 	std::streampos	base;
 	std::string		result_value;
 
-	type_size = GetTypeSize(file, collector);
+	type_size = GetTypeSize(file);
 	count = read_u32(file);
 	if (file.fail())
 		return ;
@@ -62,7 +63,7 @@ void	Jpeg_Jpg::HandleStringData(std::ifstream &file, unsigned short &collector)
 		char	*buffer;
 		
 		base = file.tellg();
-		file.seekg(offset, std::ios::beg);
+		file.seekg(this->tiff_start + (std::streampos)offset, std::ios::beg);
 		buffer = new char[count + 1];
 		if (!buffer)
 		{
@@ -100,7 +101,7 @@ void	Jpeg_Jpg::HandleStringData(std::ifstream &file, unsigned short &collector)
 	}
 }
 
-void	Jpeg_Jpg::HandleExifSubAndGPS(std::ifstream &file, unsigned short &collector)
+void	Jpeg_Jpg::HandleExifSubAndGPS(std::ifstream &file)
 {
 	unsigned short	temp_collector;
 	unsigned short	temp_length;
@@ -111,7 +112,7 @@ void	Jpeg_Jpg::HandleExifSubAndGPS(std::ifstream &file, unsigned short &collecto
 
 	temp_collector = 0;
 	temp_length = 0;
-	type_size = GetTypeSize(file, collector);
+	type_size = GetTypeSize(file);
 	count = read_u32(file);
 	if (file.fail())
 		return ;
@@ -122,7 +123,7 @@ void	Jpeg_Jpg::HandleExifSubAndGPS(std::ifstream &file, unsigned short &collecto
 	if (count == 0)
 		return ;
 	base = file.tellg();
-	file.seekg(offset, std::ios::beg);
+	file.seekg(this->tiff_start + (std::streampos)offset, std::ios::beg);
 	Process_IFD(file, temp_collector, temp_length);
 	file.seekg(base);
 }
@@ -135,7 +136,7 @@ void	Jpeg_Jpg::HandleValueData(std::ifstream &file, unsigned short &collector)
 	std::streampos	base;
 	std::string		temp;
 
-	type_size = GetTypeSize(file, collector);
+	type_size = GetTypeSize(file);
 	count = read_u32(file);
 	if (file.fail())
 		return ;
@@ -148,7 +149,7 @@ void	Jpeg_Jpg::HandleValueData(std::ifstream &file, unsigned short &collector)
 	base = file.tellg();
 	if (count > 4)
 	{
-		file.seekg(offset, std::ios::beg);
+		file.seekg(this->tiff_start + (std::streampos)offset, std::ios::beg);
 		if (collector == 0x829D)
 			this->data["FNumber"] = get_rational(file);
 		else if (collector == 0x829A)
@@ -228,7 +229,7 @@ void	Jpeg_Jpg::HandleGPSRef(std::ifstream &file, unsigned short &collector)
 	unsigned int	offset;
 	char			buffer[5];
 
-	type_size = GetTypeSize(file, collector);
+	type_size = GetTypeSize(file);
 	count = read_u32(file);
 	if (file.fail())
 		return ;
@@ -256,7 +257,6 @@ void	Jpeg_Jpg::HandleGPSRef(std::ifstream &file, unsigned short &collector)
 void	Jpeg_Jpg::Process_IFD(std::ifstream &file, unsigned short &collector, unsigned short &length)
 {
 	unsigned short	num_entries;
-	unsigned int	four_byte;
 	size_t			i;
 
 	if ((num_entries = read_u16(file)) == 0)
@@ -270,7 +270,7 @@ void	Jpeg_Jpg::Process_IFD(std::ifstream &file, unsigned short &collector, unsig
 		if (collector == 0x010F || collector == 0x0110 || collector == 0x0132)
 			HandleStringData(file, collector);
 		else if (collector == 0x8769 || collector == 0x8825)
-			HandleExifSubAndGPS(file, collector);
+			HandleExifSubAndGPS(file);
 		else if (collector == 0x8827 || collector == 0x829A || collector == 0x829D
 			|| collector == 0x0002 || collector == 0x0004 || collector == 0x0006)
 			HandleValueData(file, collector);
@@ -288,6 +288,7 @@ void	Jpeg_Jpg::StartParsing(std::ifstream &file, unsigned short &collector, unsi
 	char			buffer[2];
 	unsigned int	offset;
 
+	this->tiff_start = file.tellg();
 	if (!file.read(buffer, 2))
 		return ;
 	if (buffer[0] == 'I' && buffer[1] == 'I')
@@ -329,34 +330,45 @@ void	Jpeg_Jpg::parse_exif(std::ifstream &file, unsigned short &collector)
 	StartParsing(file, collector, length);
 }
 
-void	Jpeg_Jpg::UpdateData(std::ifstream &file)
+void    Jpeg_Jpg::UpdateData(std::ifstream &file)
 {
 	unsigned short	collector;
 	unsigned short	length;
+	std::streampos	block_start;
 
 	while (!file.eof())
 	{
 		collector = read_u16(file);
+
 		if (file.fail() || collector == 0xFFDA)
 			return ;
 		else if (collector == 0xFFE1)
+		{
+			block_start = file.tellg();
+			length = read_u16(file);
+			file.seekg(block_start); 
 			parse_exif(file, collector);
-		else if (collector == 0xFFC0)
+			file.seekg(block_start + (std::streampos)length, std::ios::beg);
+			this->little_endian = false;
+		}
+		else if (collector == 0xFFC0 || collector == 0xFFC2)
 		{
 			length = read_u16(file);
+			file.seekg(1, std::ios::cur);
 			unsigned short height = read_u16(file);
 			unsigned short width = read_u16(file);
-
-			file.seekg(1, std::ios::cur);
 			std::stringstream ss_h, ss_w;
+
 			ss_h << height;
 			ss_w << width;
 			this->data["Height"] = ss_h.str();
 			this->data["Width"] = ss_w.str();
+
 			file.seekg(length - 7, std::ios::cur);
 		}
 		else
 		{
+			std::cout << "Atlanan Marker: 0x" << std::hex << collector << std::dec << std::endl;
 			if ((collector >> 8) != 0xFF)
 				return ;
 			length = read_u16(file);
