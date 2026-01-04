@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include "./Classes/Jpg.hpp"
+#include "./Classes/Bmp.hpp"
 #include "./Classes/Tif.hpp"
 // Renk kodları AllClasses.hpp üzerinden geliyor (RED, YELLOW, RESET vs.)
 
@@ -34,6 +35,8 @@ int main(int argc, char **argv)
     {
         parser = new TiffTif(file_path);
     }
+    else if (ext == "bmp" || ext == "BMP")
+        parser = new Bmp(file_path);
     else
     {
         std::cerr << RED << "Hata: Desteklenmeyen dosya formati (" << ext << ")." << RESET << std::endl;

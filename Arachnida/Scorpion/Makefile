@@ -2,8 +2,11 @@ NAME	=	scorpion
 OBJS	=	$(SRCS:.cpp=.o)
 CC		=	c++
 FLAGS	=	-Wall -Wextra -Werror -std=c++98
-SRCS	=	Scorpion.cpp	\
-			Main.cpp		\
+SRCS	=	./Classes/AllClass.cpp	\
+			Main.cpp				\
+			./Classes/Jpg.cpp		\
+			./Classes/Tif.cpp		\
+			./Classes/Bmp.cpp		\
 
 all: $(NAME)
 

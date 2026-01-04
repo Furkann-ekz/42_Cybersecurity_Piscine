@@ -34,7 +34,7 @@ void	Scorpion::SetClasses(void)
 	{
 		extension = to_lower(get_extension(files[i]));
 		if (extension == ".jpg" || extension == ".jpeg")
-			classes.push_back(new Jpeg_Jpg(files[i]));
+			classes.push_back(new JpegJpg(files[i]));
 		else if (extension == ".bmp")
 			classes.push_back(new Bmp(files[i]));
 		else if (extension == ".gif")
@@ -42,7 +42,7 @@ void	Scorpion::SetClasses(void)
 		else if (extension == ".png")
 			classes.push_back(new Png(files[i]));
 		else if (extension == ".tiff")
-			classes.push_back(new Tiff(files[i]));
+			classes.push_back(new TiffTif(files[i]));
 		else if (extension == ".webp")
 			classes.push_back(new Webp(files[i]));
 		else if (extension == ".svg")
