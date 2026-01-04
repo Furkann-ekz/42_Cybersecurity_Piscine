@@ -4,9 +4,9 @@
 #include "./Classes/AllClass.hpp"
 #include "./Classes/Bmp.hpp"
 #include "./Classes/Gif.hpp"
-#include "./Classes/Jpeg_Jpg.hpp"
+#include "./Classes/Jpg.hpp"
 #include "./Classes/Png.hpp"
-#include "./Classes/Tiff.hpp"
+#include "./Classes/Tif.hpp"
 #include "./Classes/Webp.hpp"
 #include "./Classes/Svg.hpp"
 #include <cctype>

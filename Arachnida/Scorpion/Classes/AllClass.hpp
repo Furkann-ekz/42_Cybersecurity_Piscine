@@ -20,6 +20,7 @@
 class AllClasses
 {
 	protected:
+		std::streampos						tiff_start;
 		bool								control;
 		bool								little_endian; // false ise big; true ise little endian
 		std::string							file_name;
@@ -43,6 +44,15 @@ class AllClasses
 			ss << value;
 			return ss.str();
 		}
+		// for ".jpeg" | ".jpg" | ".tiff" | ".tif"
+		void		Process_IFD(std::ifstream &file, unsigned short &collector, unsigned short &length);
+		void		HandleStringData(std::ifstream &file, unsigned short &collector);
+		void		HandleValueData(std::ifstream &file, unsigned short &collector);
+		void		HandleGPSRef(std::ifstream &file, unsigned short &collector);
+		void		HandleSubIFD(std::ifstream &file);
+		int			GetTypeSize(std::ifstream &file);
+		std::string	get_rational(std::ifstream &file);
+
 };
 
 #endif
