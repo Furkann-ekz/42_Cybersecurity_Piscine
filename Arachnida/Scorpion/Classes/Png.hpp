@@ -11,6 +11,8 @@ class Png: public AllClasses
 		~Png();
 
 		void	parse();
+		void	ParseStarting(std::ifstream &file, unsigned int &collector);
+		void	Continue(std::ifstream &file);
 };
 
 #endif

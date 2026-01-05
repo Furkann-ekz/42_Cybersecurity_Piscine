@@ -7,6 +7,7 @@ SRCS	=	./Classes/AllClass.cpp	\
 			./Classes/Jpg.cpp		\
 			./Classes/Tif.cpp		\
 			./Classes/Bmp.cpp		\
+			./Classes/Png.cpp		\
 
 all: $(NAME)
 

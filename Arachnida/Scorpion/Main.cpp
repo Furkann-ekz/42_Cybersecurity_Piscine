@@ -3,6 +3,7 @@
 #include "./Classes/Jpg.hpp"
 #include "./Classes/Bmp.hpp"
 #include "./Classes/Tif.hpp"
+#include "./Classes/Png.hpp"
 // Renk kodları AllClasses.hpp üzerinden geliyor (RED, YELLOW, RESET vs.)
 
 int main(int argc, char **argv)
@@ -37,6 +38,8 @@ int main(int argc, char **argv)
     }
     else if (ext == "bmp" || ext == "BMP")
         parser = new Bmp(file_path);
+    else if (ext == "png" || ext == "PNG")
+        parser = new Png(file_path);
     else
     {
         std::cerr << RED << "Hata: Desteklenmeyen dosya formati (" << ext << ")." << RESET << std::endl;
