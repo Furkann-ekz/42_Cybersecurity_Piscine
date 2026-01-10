@@ -5,7 +5,6 @@
 
 class Png: public AllClasses
 {
-	private:
 	public:
 		Png(std::string file_name);
 		~Png();

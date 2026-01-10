@@ -1,10 +1,20 @@
 #include <iostream>
 #include <string>
+#include "./Classes/AllClass.hpp"
 #include "./Classes/Jpg.hpp"
 #include "./Classes/Bmp.hpp"
 #include "./Classes/Tif.hpp"
 #include "./Classes/Png.hpp"
-// Renk kodları AllClasses.hpp üzerinden geliyor (RED, YELLOW, RESET vs.)
+#include "./Classes/Gif.hpp"
+#include "./Classes/Webp.hpp" 
+#include "./Classes/Svg.hpp"
+
+// Renk Makroları (Eğer AllClasses.hpp içinde tanımlı değilse burayı açabilirsin)
+/*
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define YELLOW  "\033[33m"
+*/
 
 int main(int argc, char **argv)
 {
@@ -28,32 +38,48 @@ int main(int argc, char **argv)
     AllClasses *parser = NULL;
 
     // 3. Uzantıya Göre Sınıf Seçimi
+    // NOT: Sınıf adlarının (Jpg, Tif vb.) header dosyalarınla eşleştiğinden emin ol.
     if (ext == "jpg" || ext == "jpeg" || ext == "JPG" || ext == "JPEG")
     {
-        parser = new JpegJpg(file_path);
+        parser = new JpegJpg(file_path); 
     }
     else if (ext == "tif" || ext == "tiff" || ext == "TIF" || ext == "TIFF")
     {
         parser = new TiffTif(file_path);
     }
     else if (ext == "bmp" || ext == "BMP")
+    {
         parser = new Bmp(file_path);
+    }
     else if (ext == "png" || ext == "PNG")
+    {
         parser = new Png(file_path);
+    }
+    else if (ext == "gif" || ext == "GIF")
+    {
+        parser = new Gif(file_path);
+    }
+    else if (ext == "webp" || ext == "WEBP")
+    {
+        parser = new Webp(file_path); // Final Boss eklendi
+    }
+    else if (ext == "svg" || ext == "SVG")
+    {
+        parser = new Svg(file_path);
+    }
     else
     {
         std::cerr << RED << "Hata: Desteklenmeyen dosya formati (" << ext << ")." << RESET << std::endl;
-        std::cerr << "Lutfen .jpg veya .tiff uzantili dosya giriniz." << std::endl;
+        std::cerr << "Desteklenenler: JPG, TIFF, BMP, PNG, GIF, WEBP" << std::endl;
         return (1);
     }
 
-    // 4. Analiz Başlatılıyor (Sarı Başlık)
+    // 4. Analiz Başlatılıyor
     std::cout << YELLOW << "----------------------------------------" << RESET << std::endl;
     std::cout << YELLOW << "DOSYA: " << file_path << " ANALIZ EDILIYOR..." << RESET << std::endl;
     std::cout << YELLOW << "----------------------------------------" << RESET << std::endl;
 
     // 5. Parse ve Yazdırma (Polimorfik Çağrı)
-    // Hangi sınıfın parse fonksiyonu çalışacaksa o devreye girer.
     parser->parse();
     parser->print_data();
 

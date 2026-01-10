@@ -13,6 +13,7 @@ class Bmp: public AllClasses
 
 		void	parse();
 		void	ParseContinue(std::ifstream &file);
+		void	GetCompression(std::ifstream &file);
 };
 
 #endif

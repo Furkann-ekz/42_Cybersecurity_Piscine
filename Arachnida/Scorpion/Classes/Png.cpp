@@ -1,6 +1,9 @@
 #include "Png.hpp"
 
-Png::Png(std::string file_name) : AllClasses(file_name) {}
+Png::Png(std::string file_name) : AllClasses(file_name)
+{
+	little_endian = false;
+}
 
 Png::~Png() {}
 
@@ -15,7 +18,6 @@ void	Png::Continue(std::ifstream &file)
 	ss << (int)buffer[0];
 	this->data["Bit Depth"] = ss.str();
 	ss.str("");
-	ss.clear();
 	switch ((int)buffer[1])
 	{
 		case 0:
@@ -37,7 +39,7 @@ void	Png::Continue(std::ifstream &file)
 			color_type = "Unknown";
 	}
 	this->data["Color Type"] = color_type;
-	ss.str(""); ss.clear();
+	ss.str("");
 	ss << (int)buffer[2];
 	this->data["Compression"] = (buffer[2] == 0) ? "Deflate" : "Unknown";
 	this->data["Filter Method"] = (buffer[3] == 0) ? "Adaptive" : "Unknown";
@@ -72,7 +74,6 @@ void	Png::ParseStarting(std::ifstream &file, unsigned int &collector)
 	ss << collector;
 	this->data["Width"] = ss.str();
 	ss.str("");
-	ss.clear();
 	collector = read_u32(file);
 	if (file.fail())
 		return ;

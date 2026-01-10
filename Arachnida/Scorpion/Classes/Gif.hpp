@@ -5,13 +5,12 @@
 
 class Gif: public AllClasses
 {
-	private:
 	public:
 		Gif(std::string file_name);
 		~Gif();
 
 		void	parse();
-		void	parse_continue(std::ifstream &file, unsigned short collector);
+		void	parse_continue(std::ifstream &file);
 		void	HandlePackedField(std::ifstream &file);
 
 };
