@@ -11,6 +11,9 @@ class Gif: public AllClasses
 		~Gif();
 
 		void	parse();
+		void	parse_continue(std::ifstream &file, unsigned short collector);
+		void	HandlePackedField(std::ifstream &file);
+
 };
 
 #endif
