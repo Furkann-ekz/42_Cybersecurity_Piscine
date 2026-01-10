@@ -81,7 +81,7 @@ void	Gif::parse()
 			return ;
 		}
 		this->data["Version"] = std::string(buffer, 6);
+		parse_continue(file, collector);
 	}
-	parse_continue(file, collector);
 	file.close();
 }
