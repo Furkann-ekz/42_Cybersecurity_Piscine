@@ -10,8 +10,14 @@ class Png: public AllClasses
 		~Png();
 
 		void	parse();
-		void	ParseStarting(std::ifstream &file, unsigned int &collector);
-		void	Continue(std::ifstream &file);
+		void	ParseIHDR(std::ifstream &file, unsigned int &collector);
+		void	ParseIHDR_Body(std::ifstream &file);
+		
+		void	ProcessRemainingChunks(std::ifstream &file);
+		void	HandleText(std::ifstream &file, unsigned int length);
+		void	HandlePhys(std::ifstream &file, unsigned int length);
+		void	HandleTime(std::ifstream &file, unsigned int length);
+		void	SkipChunk(std::ifstream &file, unsigned int length);
 };
 
 #endif

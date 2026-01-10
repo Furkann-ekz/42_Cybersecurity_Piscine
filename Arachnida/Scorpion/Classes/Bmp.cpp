@@ -2,16 +2,16 @@
 
 Bmp::Bmp(std::string file_name) : AllClasses(file_name)
 {
-	little_endian = true;
-	UpDown = false;
+	this->little_endian = true;
+	this->UpDown = false;
 }
 
 Bmp::~Bmp() {}
 
 void	Bmp::GetCompression(std::ifstream &file)
 {
-	unsigned int		compression;
-	std::string			comp_str;
+	unsigned int	compression;
+	std::string		comp_str;
 
 	compression = read_u32(file);
 	switch (compression)
@@ -47,8 +47,8 @@ void	Bmp::ParseContinue(std::ifstream &file)
 {
 	int					width;
 	int					height;
-	int					 x_ppm;
-	int					 y_ppm;
+	int					x_ppm;
+	int					y_ppm;
 	unsigned short		planes;
 	unsigned short		bpp;
 	unsigned int		image_size;
@@ -57,11 +57,10 @@ void	Bmp::ParseContinue(std::ifstream &file)
 	file.seekg(18, std::ios::beg);
 	width = read_u32(file);
 	if (file.fail())
-		return;
-
+		return ;
 	height = read_u32(file);
 	if (file.fail())
-		return;
+		return ;
 
 	if (height < 0)
 	{
@@ -79,6 +78,10 @@ void	Bmp::ParseContinue(std::ifstream &file)
 	ss.str("");
 
 	planes = read_u16(file);
+	ss << planes;
+	this->data["Planes"] = ss.str();
+	ss.str("");
+
 	bpp = read_u16(file);
 	ss << bpp << " bits";
 	this->data["Bits Per Pixel"] = ss.str();
@@ -89,10 +92,9 @@ void	Bmp::ParseContinue(std::ifstream &file)
 	image_size = read_u32(file);
 	ss << image_size << " bytes";
 	this->data["Raw Image Size"] = ss.str();
-	
+
 	x_ppm = read_u32(file);
 	y_ppm = read_u32(file);
-	
 	if (x_ppm > 0 && y_ppm > 0)
 	{
 		ss.str("");

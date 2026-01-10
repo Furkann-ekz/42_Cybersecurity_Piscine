@@ -1,10 +1,13 @@
 #include "Jpg.hpp"
 
-JpegJpg::JpegJpg(std::string file_name) : AllClasses(file_name) {}
+Jpg::Jpg(std::string file_name) : AllClasses(file_name)
+{
+	this->little_endian = false; 
+}
 
-JpegJpg::~JpegJpg() {}
+Jpg::~Jpg() {}
 
-void	JpegJpg::StartParsing(std::ifstream &file, unsigned short &collector, unsigned short length)
+void	Jpg::StartParsing(std::ifstream &file, unsigned short &collector, unsigned short length)
 {
 	char			buffer[2];
 	unsigned int	offset;
@@ -13,9 +16,9 @@ void	JpegJpg::StartParsing(std::ifstream &file, unsigned short &collector, unsig
 	if (!file.read(buffer, 2))
 		return ;
 	if (buffer[0] == 'I' && buffer[1] == 'I')
-		little_endian = true;
+		this->little_endian = true;
 	else if (buffer[0] == 'M' && buffer[1] == 'M')
-		little_endian = false;
+		this->little_endian = false;
 	else
 		return ;
 	collector = read_u16(file);
@@ -34,7 +37,7 @@ void	JpegJpg::StartParsing(std::ifstream &file, unsigned short &collector, unsig
 	Process_IFD(file, collector, length);
 }
 
-void	JpegJpg::parse_exif(std::ifstream &file, unsigned short &collector)
+void	Jpg::parse_exif(std::ifstream &file, unsigned short &collector)
 {
 	char			exif[6];
 	unsigned short	length;
@@ -45,22 +48,29 @@ void	JpegJpg::parse_exif(std::ifstream &file, unsigned short &collector)
 	length -= 2;
 	if (!file.read(exif, 6))
 		return ;
-	if (!(exif[0] == 'E' && exif[1] == 'x' && exif[2] == 'i' && exif[3] == 'f' && exif[4] == '\0' && exif[5] == '\0'))
+	if (!(exif[0] == 'E' && exif[1] == 'x' && exif[2] == 'i' 
+		&& exif[3] == 'f' && exif[4] == '\0' && exif[5] == '\0'))
 		return ;
 	length -= 6;
 	StartParsing(file, collector, length);
 }
 
-void    JpegJpg::UpdateData(std::ifstream &file)
+void	Jpg::UpdateData(std::ifstream &file)
 {
-	unsigned short	collector;
-	unsigned short	length;
-	std::streampos	block_start;
+	unsigned short		collector;
+	unsigned short		length;
+	unsigned short		height;
+	unsigned short		width;
+	char				precision_byte;
+	char				comp_byte;
+	int					precision;
+	int					components;
+	std::streampos		block_start;
+	std::stringstream	ss;
 
 	while (!file.eof())
 	{
 		collector = read_u16(file);
-
 		if (file.fail() || collector == 0xFFDA)
 			return ;
 		else if (collector == 0xFFE1)
@@ -75,17 +85,31 @@ void    JpegJpg::UpdateData(std::ifstream &file)
 		else if (collector == 0xFFC0 || collector == 0xFFC2)
 		{
 			length = read_u16(file);
-			file.seekg(1, std::ios::cur);
-			unsigned short height = read_u16(file);
-			unsigned short width = read_u16(file);
-			std::stringstream ss_h, ss_w;
+			
+			file.read(&precision_byte, 1);
+			precision = (unsigned char)precision_byte;
+			
+			height = read_u16(file);
+			width = read_u16(file);
+			
+			file.read(&comp_byte, 1);
+			components = (unsigned char)comp_byte;
 
-			ss_h << height;
-			ss_w << width;
-			this->data["Height"] = ss_h.str();
-			this->data["Width"] = ss_w.str();
+			ss << height; this->data["Height"] = ss.str(); ss.str("");
+			ss << width; this->data["Width"] = ss.str(); ss.str("");
+			ss << precision << " bits"; this->data["Bit Depth"] = ss.str(); ss.str("");
+			ss << components; this->data["Components"] = ss.str(); ss.str("");
 
-			file.seekg(length - 7, std::ios::cur);
+			if (components == 1) this->data["Color Space"] = "Grayscale";
+			else if (components == 3) this->data["Color Space"] = "YCbCr (Standard)";
+			else if (components == 4) this->data["Color Space"] = "CMYK";
+
+			if (collector == 0xFFC0)
+				this->data["Compression"] = "Baseline (Standard)";
+			else
+				this->data["Compression"] = "Progressive";
+
+			file.seekg(length - 8, std::ios::cur);
 		}
 		else
 		{
@@ -99,7 +123,7 @@ void    JpegJpg::UpdateData(std::ifstream &file)
 	}
 }
 
-void	JpegJpg::parse()
+void	Jpg::parse()
 {
 	char			buffer[2];
 	unsigned char	b1;
@@ -116,11 +140,9 @@ void	JpegJpg::parse()
 		b1 = (unsigned char)buffer[0];
 		b2 = (unsigned char)buffer[1];
 		if (b1 == 0xFF && b2 == 0xD8)
-			control = true;
+			UpdateData(file);
 		else
 			std::cout << "[x] " << file_name << " is not a valid JPEG or JPG." << std::endl;
 	}
-	if (control == true)
-		UpdateData(file);
 	file.close();
 }

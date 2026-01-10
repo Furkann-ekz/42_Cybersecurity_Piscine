@@ -3,11 +3,11 @@
 
 #include "AllClass.hpp"
 
-class TiffTif: public AllClasses
+class Tif: public AllClasses
 {
 	public:
-		TiffTif(std::string file_name);
-		~TiffTif();
+		Tif(std::string file_name);
+		~Tif();
 
 		void	parse();
 		void	ParseContinue(std::ifstream &file);

@@ -7,11 +7,12 @@ Svg::~Svg() {}
 std::string	Svg::get_attribute(std::string key)
 {
 	std::string	target;
-	size_t		pos = 0;
+	size_t		pos;
 	size_t		quote_start;
 	size_t		quote_end;
 	char		quote_type;
 
+	pos = 0;
 	target = key + "=";
 	while ((pos = this->text.find(target, pos)) != std::string::npos)
 	{
@@ -22,7 +23,6 @@ std::string	Svg::get_attribute(std::string key)
 		}
 
 		quote_start = this->text.find_first_of("\"'", pos + target.length());
-
 		if (quote_start == std::string::npos)
 			return ("");
 
@@ -39,16 +39,19 @@ std::string	Svg::get_attribute(std::string key)
 
 std::string Svg::get_element_content(std::string tag)
 {
-	std::string open_tag = "<" + tag + ">";
-	std::string close_tag = "</" + tag + ">";
+	std::string open_tag;
+	std::string close_tag;
+	size_t      start;
+	size_t      end;
 
-	size_t start = this->text.find(open_tag);
+	open_tag = "<" + tag + ">";
+	close_tag = "</" + tag + ">";
+	start = this->text.find(open_tag);
 	if (start == std::string::npos)
 		return ("");
 	
 	start += open_tag.length();
-
-	size_t end = this->text.find(close_tag, start);
+	end = this->text.find(close_tag, start);
 	if (end == std::string::npos)
 		return ("");
 
@@ -66,38 +69,46 @@ void	Svg::parse_continue()
 
 	width = get_attribute("width");
 	height = get_attribute("height");
+
 	if (!width.empty() && !height.empty())
 	{
 		this->data["Width"] = width;
 		this->data["Height"] = height;
-		return ;
-	}
-	viewBox = get_attribute("viewBox");
-	if (!viewBox.empty())
-	{
-		ss << viewBox;
-		ss >> trash >> trash;
-		ss >> target;
-		this->data["Width"] = target;
-		ss >> target;
-		this->data["Height"] = target;
-		this->data["Info"] = "Extracted from viewBox";
 	}
 	else
-		std::cout << "[x] No dimensions found in SVG." << std::endl;
+	{
+		viewBox = get_attribute("viewBox");
+		if (!viewBox.empty())
+		{
+			ss << viewBox;
+			ss >> trash >> trash;
+			ss >> target;
+			this->data["Width"] = target;
+			ss >> target;
+			this->data["Height"] = target;
+			this->data["Info"] = "Extracted from viewBox";
+		}
+		else
+			std::cout << "[x] No dimensions found in SVG." << std::endl;
+	}
+
 	target = get_element_content("title");
-    if (!target.empty())
-        this->data["Title"] = target;
+	if (!target.empty())
+		this->data["Title"] = target;
 
-    target = get_element_content("desc");
-    if (!target.empty())
-        this->data["Description"] = target;
+	target = get_element_content("desc");
+	if (!target.empty())
+		this->data["Description"] = target;
 
-    target = get_attribute("version");
-    if (!target.empty())
-        this->data["Version"] = target;
-    else
-        this->data["Version"] = "1.1 (Default)";
+	target = get_attribute("version");
+	if (!target.empty())
+		this->data["Version"] = target;
+	else
+		this->data["Version"] = "1.1 (Default)";
+
+	target = get_attribute("xmlns");
+	if (!target.empty())
+		this->data["Namespace"] = target;
 }
 
 void	Svg::parse()
@@ -112,6 +123,7 @@ void	Svg::parse()
 	}
 	while (std::getline(file, line))
 		this->text += line + "\n";
+	
 	parse_continue();
 	file.close();
 }

@@ -2,12 +2,38 @@
 
 static std::string	get_extension(std::string f_name)
 {
-	size_t		i;
+	size_t	i;
 
 	i = f_name.rfind('.');
 	if (i != std::string::npos)
 		return (f_name.substr(i));
 	return ("");
+}
+
+Scorpion::Scorpion(char **av)
+{
+	size_t	i;
+
+	i = 0;
+	while (av[i])
+	{
+		this->files.push_back(av[i]);
+		i++;
+	}
+	this->SetClasses();
+}
+
+Scorpion::~Scorpion()
+{
+	size_t	i;
+
+	i = 0;
+	while (i < this->classes.size())
+	{
+		delete this->classes[i];
+		i++;
+	}
+	this->classes.clear();
 }
 
 std::string	Scorpion::to_lower(std::string str)
@@ -25,58 +51,32 @@ std::string	Scorpion::to_lower(std::string str)
 
 void	Scorpion::SetClasses(void)
 {
-	size_t		i;
 	std::string	extension;
-	std::string	current_file;
+	size_t		i;
 
 	i = 0;
-	while (i < files.size())
+	while (i < this->files.size())
 	{
-		extension = to_lower(get_extension(files[i]));
+		extension = this->to_lower(get_extension(this->files[i]));
+		
 		if (extension == ".jpg" || extension == ".jpeg")
-			classes.push_back(new JpegJpg(files[i]));
+			this->classes.push_back(new Jpg(this->files[i]));
 		else if (extension == ".bmp")
-			classes.push_back(new Bmp(files[i]));
+			this->classes.push_back(new Bmp(this->files[i]));
 		else if (extension == ".gif")
-			classes.push_back(new Gif(files[i]));
+			this->classes.push_back(new Gif(this->files[i]));
 		else if (extension == ".png")
-			classes.push_back(new Png(files[i]));
-		else if (extension == ".tiff")
-			classes.push_back(new TiffTif(files[i]));
+			this->classes.push_back(new Png(this->files[i]));
+		else if (extension == ".tiff" || extension == ".tif")
+			this->classes.push_back(new Tif(this->files[i]));
 		else if (extension == ".webp")
-			classes.push_back(new Webp(files[i]));
+			this->classes.push_back(new Webp(this->files[i]));
 		else if (extension == ".svg")
-			classes.push_back(new Svg(files[i]));
+			this->classes.push_back(new Svg(this->files[i]));
 		else
-			std::cout << "Warning: Unknown format file: " << files[i] << std::endl;
+			std::cout << "Warning: Unknown format file: " << this->files[i] << std::endl;
 		i++;
 	}
-}
-
-Scorpion::Scorpion(char **av)
-{
-	size_t	i;
-
-	i = 0;
-	while (av[i])
-	{
-		files.push_back(av[i]);
-		i++;
-	}
-	SetClasses();
-}
-
-Scorpion::~Scorpion()
-{
-	size_t	i;
-
-	i = 0;
-	while (i < classes.size())
-	{
-		delete classes[i];
-		i++;
-	}
-	classes.clear();
 }
 
 void	Scorpion::Run(void)
@@ -84,10 +84,11 @@ void	Scorpion::Run(void)
 	size_t	i;
 
 	i = 0;
-	while (i < classes.size())
+	while (i < this->classes.size())
 	{
-		classes[i]->parse();
-		classes[i]->display_info();
+		this->classes[i]->parse();
+		this->classes[i]->display_info();
+		this->classes[i]->print_data();
 		i++;
 	}
 }

@@ -11,8 +11,14 @@ class Gif: public AllClasses
 
 		void	parse();
 		void	parse_continue(std::ifstream &file);
-		void	HandlePackedField(std::ifstream &file);
-
+		
+		void	ProcessBlocks(std::ifstream &file);
+		void	HandleExtension(std::ifstream &file);
+		void	ReadComment(std::ifstream &file);
+		void	ReadGraphicControl(std::ifstream &file);
+		void	ReadApplication(std::ifstream &file);
+		void	SkipBlock(std::ifstream &file);
+		void	HandlePackedField(unsigned char packed);
 };
 
 #endif

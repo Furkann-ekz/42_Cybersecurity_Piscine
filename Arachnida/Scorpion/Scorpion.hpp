@@ -9,6 +9,9 @@
 #include "./Classes/Tif.hpp"
 #include "./Classes/Webp.hpp"
 #include "./Classes/Svg.hpp"
+#include <vector>
+#include <string>
+#include <iostream>
 #include <cctype>
 
 class Scorpion
@@ -16,6 +19,7 @@ class Scorpion
 	private:
 		std::vector<AllClasses *>	classes;
 		std::vector<std::string>	files;
+	
 	public:
 		Scorpion(char **av);
 		~Scorpion();
