@@ -9,7 +9,6 @@ import struct
 SECRET = "42_is_awesome_piscine_key"
 
 def print_error(msg):
-    # Hataları stderr kanalına yazdırıyoruz
     print(f"./ft_otp: error: {msg}", file=sys.stderr)
     sys.exit(1)
 
@@ -32,11 +31,9 @@ def generate_key_file(key_file_path):
     except FileNotFoundError:
         print_error(f"file '{key_file_path}' not found.")
 
-    # Uzunluk ve format kontrolü
     if len(hex_key) < 64 or not re.fullmatch(r'[0-9a-fA-F]+', hex_key):
         print_error("key must be 64 hexadecimal characters.")
     
-    # Hexadecimal çift karakter kontrolü (Tek sayıysa çökmeyi önler)
     if len(hex_key) % 2 != 0:
         print_error("hexadecimal string must have an even length.")
 
@@ -45,7 +42,6 @@ def generate_key_file(key_file_path):
     try:
         with open("ft_otp.key", "wb") as f:
             f.write(encrypted_data)
-        # Başarı mesajı standart çıktıya (stdout) gidiyor
         print("Key was successfully saved in ft_otp.key.")
     except Exception as e:
         print_error(f"could not write to file. {e}")
@@ -71,7 +67,6 @@ def generate_otp(key_file_path):
     truncated_hash = struct.unpack(">I", hmac_hash[offset:offset+4])[0] & 0x7FFFFFFF
     
     otp = truncated_hash % 1000000
-    # Şifre standart çıktıya yazdırılıyor[cite: 1]
     print(f"{otp:06d}")
 
 def main():
