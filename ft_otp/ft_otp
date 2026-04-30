@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+import sys
+import re
+import time
+import hmac
+import hashlib
+import struct
+
+SECRET = "42_is_awesome_piscine_key"
+
+def print_error(msg):
+    # Hataları stderr kanalına yazdırıyoruz
+    print(f"./ft_otp: error: {msg}", file=sys.stderr)
+    sys.exit(1)
+
+def encrypt_key(hex_key):
+    encrypted_bytes = bytearray()
+    for i, char in enumerate(hex_key):
+        encrypted_bytes.append(ord(char) ^ ord(SECRET[i % len(SECRET)]))
+    return encrypted_bytes
+
+def decrypt_key(encrypted_bytes):
+    decrypted_chars = []
+    for i, byte in enumerate(encrypted_bytes):
+        decrypted_chars.append(chr(byte ^ ord(SECRET[i % len(SECRET)])))
+    return "".join(decrypted_chars)
+
+def generate_key_file(key_file_path):
+    try:
+        with open(key_file_path, 'r') as f:
+            hex_key = f.read().strip()
+    except FileNotFoundError:
+        print_error(f"file '{key_file_path}' not found.")
+
+    # Uzunluk ve format kontrolü
+    if len(hex_key) < 64 or not re.fullmatch(r'[0-9a-fA-F]+', hex_key):
+        print_error("key must be 64 hexadecimal characters.")
+    
+    # Hexadecimal çift karakter kontrolü (Tek sayıysa çökmeyi önler)
+    if len(hex_key) % 2 != 0:
+        print_error("hexadecimal string must have an even length.")
+
+    encrypted_data = encrypt_key(hex_key)
+    
+    try:
+        with open("ft_otp.key", "wb") as f:
+            f.write(encrypted_data)
+        # Başarı mesajı standart çıktıya (stdout) gidiyor
+        print("Key was successfully saved in ft_otp.key.")
+    except Exception as e:
+        print_error(f"could not write to file. {e}")
+
+def generate_otp(key_file_path):
+    try:
+        with open(key_file_path, "rb") as f:
+            encrypted_data = f.read()
+    except FileNotFoundError:
+        print_error(f"file '{key_file_path}' not found.")
+        
+    hex_key = decrypt_key(encrypted_data)
+    try:
+        key_bytes = bytes.fromhex(hex_key)
+    except ValueError:
+        print_error("invalid key format in file.")
+        
+    counter = int(time.time()) // 30
+    counter_bytes = struct.pack(">Q", counter)
+    
+    hmac_hash = hmac.new(key_bytes, counter_bytes, hashlib.sha1).digest()
+    offset = hmac_hash[-1] & 0x0F
+    truncated_hash = struct.unpack(">I", hmac_hash[offset:offset+4])[0] & 0x7FFFFFFF
+    
+    otp = truncated_hash % 1000000
+    # Şifre standart çıktıya yazdırılıyor[cite: 1]
+    print(f"{otp:06d}")
+
+def main():
+    if len(sys.argv) == 3:
+        if sys.argv[1] == "-g":
+            generate_key_file(sys.argv[2])
+        elif sys.argv[1] == "-k":
+            generate_otp(sys.argv[2])
+        else:
+            print_error("invalid option.")
+    else:
+        print("Usage:", file=sys.stderr)
+        print("  ./ft_otp -g <key_file.hex>", file=sys.stderr)
+        print("  ./ft_otp -k <ft_otp.key>", file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
