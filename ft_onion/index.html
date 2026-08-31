@@ -1,10 +1,265 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Furkan's Hidden Service</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>42 Underground Node</title>
+    <style>
+        body {
+            background-color: #050505;
+            color: #0f0;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 40px auto;
+            text-align: center;
+        }
+        h1 {
+            color: #ff003c;
+            text-shadow: 0 0 10px #ff003c;
+            font-size: 2.5em;
+            margin-bottom: 5px;
+        }
+        .warning {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 40px;
+        }
+        .product-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .product-card {
+            background: #111;
+            border: 1px solid #0f0;
+            padding: 20px;
+            text-align: left;
+            position: relative;
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.2);
+        }
+        .product-card h3 {
+            margin-top: 0;
+            color: #fff;
+        }
+        .price {
+            color: #ff003c;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover {
+            background: #fff;
+            box-shadow: 0 0 10px #fff;
+        }
+        
+        /* Modal (Fake Checkout) */
+        #modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 50;
+        }
+        #checkout-modal {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: #0a0a0a;
+            border: 2px solid #ff003c;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            z-index: 100;
+            box-shadow: 0 0 20px #ff003c;
+            text-align: left;
+        }
+        input {
+            width: 90%;
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 10px;
+            margin: 10px 0 10px 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        input:focus { outline: none; border-color: #fff; }
+
+        .cc-row {
+            display: flex;
+            gap: 10px;
+            width: 95%;
+            margin-bottom: 20px;
+        }
+        .cc-row input {
+            margin: 0;
+        }
+        
+        /* Ban Screen */
+        #ban-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        #terminal-output {
+            color: #ff003c;
+            font-size: 1.2em;
+            max-width: 80%;
+            text-align: left;
+            line-height: 1.5;
+        }
+        .blinking-cursor {
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
 </head>
 <body>
-    <h1>Tor Agina Hos Geldiniz!</h1>
-    <p>ft_onion projesi basariyla calisiyor.</p>
+
+    <div class="container" id="main-content">
+        <h1>42 Underground Node</h1>
+        <p class="warning">Warning: Transactions on this network are strictly encrypted. No logs are kept.</p>
+
+        <div class="product-grid">
+            <div class="product-card">
+                <h3>Contraband Norminette Pass</h3>
+                <p>A custom script that hides the 25-line limit, unnecessary spaces, and forbidden functions during compilation. Leaves no trace.</p>
+                <div class="price">Price: 0.15 BTC</div>
+                <button onclick="openCheckout('norm')">Purchase</button>
+            </div>
+
+            <div class="product-card">
+                <h3>Second-Hand Pointers (Void*)</h3>
+                <p>Contraband memory addresses forgotten during the Piscine, guaranteed to segfault. The storage units of the lab iMacs have been carefully scanned, and all found pointers are up for sale.</p>
+                <div class="price">Price: 0.05 BTC</div>
+                <button onclick="openCheckout('ptr')">Purchase</button>
+            </div>
+
+            <div class="product-card" style="border-color: #ff003c;">
+                <h3 style="color: #ff003c;">[CONTRACT] Drop Target User into the Black Hole</h3>
+                <p>A 0-day exploit that resets the specified student's log time in the intra database and sends them straight to the Black Hole. (You can get people kicked off campus before the 42 network even notices...)</p>
+                <div class="price">Price: 1.20 BTC</div>
+                <button style="background: #ff003c; color: #fff;" onclick="openCheckout('bh')">Select Target and Execute</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="modal-overlay"></div>
+    <div id="checkout-modal">
+        <h2 id="modal-title" style="color: #fff; margin-top: 0;">Payment Network Verification</h2>
+        
+        <div id="target-input-group" style="display: none;">
+            <label>Target Student's Intra ID:</label>
+            <input type="text" id="target-user" placeholder="enter username">
+        </div>
+
+        <label>Credit Card Information:</label>
+        <input type="text" id="cc-number" placeholder="XXXX-XXXX-XXXX-XXXX">
+        <div class="cc-row">
+            <input type="text" id="cc-date" placeholder="MM/YY" style="width: 50%;">
+            <input type="text" id="cc-cvv" placeholder="CVV" style="width: 50%;">
+        </div>
+
+        <button onclick="processPayment()" style="width: 100%; margin-bottom: 10px;">Verify Payment and Execute</button>
+        <button onclick="closeCheckout()" style="width: 100%; background: #333; color: #fff;">Cancel Transaction</button>
+    </div>
+
+    <!-- Ban Terminal Screen -->
+    <div id="ban-screen">
+        <div id="terminal-output"></div>
+    </div>
+
+    <script>
+        function openCheckout(productType) {
+            document.getElementById('modal-overlay').style.display = 'block';
+            document.getElementById('checkout-modal').style.display = 'block';
+            
+            if (productType === 'bh') {
+                document.getElementById('modal-title').innerText = "Assassination Contract";
+                document.getElementById('target-input-group').style.display = 'block';
+            } else {
+                document.getElementById('modal-title').innerText = "Covert Purchase";
+                document.getElementById('target-input-group').style.display = 'none';
+            }
+        }
+
+        function closeCheckout() {
+            document.getElementById('modal-overlay').style.display = 'none';
+            document.getElementById('checkout-modal').style.display = 'none';
+        }
+
+        function processPayment() {
+            // Arayüzü gizle, ban ekranını göster
+            document.getElementById('modal-overlay').style.display = 'none';
+            document.getElementById('checkout-modal').style.display = 'none';
+            document.getElementById('main-content').style.display = 'none';
+            
+            let banScreen = document.getElementById('ban-screen');
+            let term = document.getElementById('terminal-output');
+            banScreen.style.display = 'flex';
+
+            let targetUser = document.getElementById('target-user').value || "Unknown User";
+            let isBlackHole = document.getElementById('target-input-group').style.display === 'block';
+
+            // Yazdırılacak terminal senaryosu
+            let sequence = [
+                "> Encrypting connection...",
+                "> Accessing payment network...",
+                "> Verifying transaction...",
+                "> FATAL ERROR: Reverse IP tracking detected!",
+                "> Failed to bypass Bocal firewall.",
+                "> " + (isBlackHole ? `Instead of target '${targetUser}', YOUR Intra ID has been locked.` : "Illegal transaction attempt logged."),
+                "> Notifying system administrators...",
+                "> YOUR ACCOUNT HAS BEEN SENT TO THE BLACK HOLE.",
+                "> CONNECTION LOST."
+            ];
+
+            let index = 0;
+            term.innerHTML = '<span class="blinking-cursor">_</span>';
+
+            // Satırları tek tek ekrana basan animasyon
+            let interval = setInterval(() => {
+                if (index < sequence.length) {
+                    let currentHtml = term.innerHTML.replace('<span class="blinking-cursor">_</span>', '');
+                    term.innerHTML = currentHtml + sequence[index] + "<br><span class='blinking-cursor'>_</span>";
+                    index++;
+                    
+                    // Son mesaja gelince ekranı tamamen kırmızı yap
+                    if(index === sequence.length) {
+                        setTimeout(() => {
+                            banScreen.style.background = "#ff0000";
+                            term.style.color = "#000";
+                            term.style.fontWeight = "bold";
+                            term.style.fontSize = "2em";
+                        }, 500);
+                    }
+                } else {
+                    clearInterval(interval);
+                }
+            }, 1200);
+        }
+    </script>
 </body>
 </html>
